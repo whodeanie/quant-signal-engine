@@ -4,8 +4,8 @@ import { Disclaimer } from "@/components/Disclaimer";
 const FEATURED = [
   {
     title: "Golden Cross on SPY",
-    body: "The textbook trend follower applied to the S&P 500 ETF across the post GFC bull market.",
-    href: "/backtest?symbol=SPY&strategy=ma_crossover&from=2010-01-01&to=2024-12-31"
+    body: "The textbook trend follower applied to the S&P 500 ETF across COVID, the 2022 bear, and the 2023 to 2024 melt up.",
+    href: "/backtest?symbol=SPY&strategy=ma_crossover&from=2020-01-01&to=2024-12-31"
   },
   {
     title: "RSI Mean Reversion on AAPL",

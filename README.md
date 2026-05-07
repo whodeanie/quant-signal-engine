@@ -35,8 +35,9 @@ The summary statistics include total return, annualized return, Sharpe ratio, ma
 * Next.js 15 with the App Router and TypeScript strict.
 * Tailwind for styling.
 * Recharts for the equity and drawdown charts.
-* yahoo-finance2 as the primary market data source. Free, no API key.
-* Alpha Vantage as a secondary source for resilience. Free tier is 500 requests per day.
+* NASDAQ public quote API as the primary market data source. Free, no API key, reliable from serverless. Returns up to about five years of daily history.
+* yahoo-finance2 as a secondary source. Free, no API key, but Yahoo aggressively rate limits serverless IPs.
+* Alpha Vantage as a tertiary source. Free tier is 500 requests per day, requires a key.
 * Llama 3.3 70B via Groq's OpenAI compatible endpoint for commentary on each backtest. Free tier.
 
 ## Local development
