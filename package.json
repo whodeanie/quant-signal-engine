@@ -1,0 +1,38 @@
+{
+  "name": "quant-signal-engine",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Quant trading signal engine with walk forward backtesting. Three classic strategies (RSI mean reversion, moving average crossover, Bollinger volatility breakout) applied to historical OHLC data, with full performance statistics and AI generated commentary. Educational tool, not financial advice. No trade execution.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "next": "15.1.4",
+    "openai": "4.78.1",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "recharts": "2.15.4",
+    "yahoo-finance2": "2.13.3"
+  },
+  "devDependencies": {
+    "@types/node": "22.9.0",
+    "@types/react": "19.0.0",
+    "@types/react-dom": "19.0.0",
+    "autoprefixer": "10.4.20",
+    "eslint": "9.14.0",
+    "eslint-config-next": "15.1.4",
+    "postcss": "8.4.49",
+    "tailwindcss": "3.4.14",
+    "typescript": "5.6.3",
+    "vitest": "2.1.5"
+  }
+}
