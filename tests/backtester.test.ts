@@ -45,4 +45,39 @@ describe("runBacktest", () => {
     const buyHoldEnd = 10000 * (1 + result.stats.buyHoldReturnPct);
     expect(result.stats.endingEquity).toBeLessThan(buyHoldEnd * 100);
   });
+
+  it("rejects unsorted input bars before simulating", () => {
+    const bars = syntheticBars(80);
+    const unsorted = [bars[1]!, bars[0]!, ...bars.slice(2)];
+
+    expect(() =>
+      runBacktest(unsorted, "ma_crossover", {
+        startingCapital: 10000,
+        maxPositionFraction: 0.25
+      })
+    ).toThrow("ascending date");
+  });
+
+  it("rejects invalid risk settings", () => {
+    const bars = syntheticBars(80);
+
+    expect(() =>
+      runBacktest(bars, "ma_crossover", {
+        startingCapital: 10000,
+        maxPositionFraction: 1.5
+      })
+    ).toThrow("between 0 and 1");
+  });
+
+  it("keeps drawdowns non-positive after forced final close", () => {
+    const bars = syntheticBars(260, 0.0015);
+    const result = runBacktest(bars, "ma_crossover", {
+      startingCapital: 10000,
+      maxPositionFraction: 0.5,
+      commissionPerShare: 0.01,
+      slippageBps: 5
+    });
+
+    expect(result.equity.every((point) => point.drawdown <= 0)).toBe(true);
+  });
 });

@@ -1,8 +1,12 @@
 # Quant Signal Engine
 
-Backtest classic quant trading signals on real historical market data. Three strategies, walk forward simulation, full performance statistics, and AI generated commentary on each backtest run.
+Backtest classic quant trading signals on historical market data. Three strategies, walk-forward simulation, performance statistics, trade logs, and optional AI commentary.
 
 **Educational analytics tool. NOT financial advice. NO trade execution. NO brokerage integration.** This codebase reads market data and computes statistics. It does not place orders, hold custody of any assets, or connect to any account that can execute trades.
+
+## What this is not
+
+This is not a trading system, not a signal-selling product, and not evidence of a live profitable strategy. It is a transparent educational app for testing how simple rules behave under a controlled historical simulation.
 
 ## What it does
 
@@ -16,9 +20,10 @@ Each strategy is run against historical OHLC data through a walk forward backtes
 
 * Signals fire at the close of bar k.
 * The portfolio transitions at the open of bar k plus one. No look ahead.
-* Position size is set by capped Kelly fraction estimated from realized trade history.
+* Position size is set by a capped Kelly fraction estimated from realized closed trades. Early trades use half the configured cap because there is not enough realized history yet.
 * Slippage and per share commission are configurable, default to zero.
 * Trades, equity curve, and daily returns are tracked bar by bar.
+* Input data is validated before the simulation runs: bars must be sorted, OHLC values must be positive, and risk settings must stay within explicit bounds.
 
 The summary statistics include total return, annualized return, Sharpe ratio, max drawdown, win rate, average winning and losing trade percentage, longest losing streak, and the buy and hold benchmark return for the same window.
 
@@ -32,13 +37,13 @@ The summary statistics include total return, annualized return, Sharpe ratio, ma
 
 ## Tech stack
 
-* Next.js 15 with the App Router and TypeScript strict.
+* Next.js 16 with the App Router and TypeScript strict.
 * Tailwind for styling.
 * Recharts for the equity and drawdown charts.
 * NASDAQ public quote API as the primary market data source. Free, no API key, reliable from serverless. Returns up to about five years of daily history.
 * yahoo-finance2 as a secondary source. Free, no API key, but Yahoo aggressively rate limits serverless IPs.
 * Alpha Vantage as a tertiary source. Free tier is 500 requests per day, requires a key.
-* Llama 3.3 70B via Groq's OpenAI compatible endpoint for commentary on each backtest. Free tier.
+* Optional OpenAI-compatible commentary endpoint. If `GROQ_API_KEY` is not set, the app returns deterministic fallback commentary.
 
 ## Local development
 
@@ -54,9 +59,10 @@ The app runs on http://localhost:3000. The backtest API is at `/api/backtest`.
 
 ```bash
 npm test
+npm run check
 ```
 
-The test suite covers the indicator math (SMA, RSI, Bollinger, rolling standard deviation) and the backtester (equity curve length invariants, buy and hold benchmark sanity, ending equity bounds).
+The test suite covers the indicator math (SMA, RSI, Bollinger, rolling standard deviation), backtester invariants, input validation, and final drawdown accounting. CI runs lint, typecheck, tests, and a production build.
 
 ## Pages
 

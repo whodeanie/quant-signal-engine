@@ -2,8 +2,9 @@
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  experimental: {
-    typedRoutes: false
+  typedRoutes: false,
+  turbopack: {
+    root: process.cwd()
   }
 };
 

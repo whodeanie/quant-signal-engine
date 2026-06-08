@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { fetchBars } from "@/lib/marketData";
 import { runBacktest } from "@/lib/backtester";
 import { generateAICommentary } from "@/lib/aiCommentary";
-import type { StrategyId } from "@/lib/types";
+import type { BacktestResult, StrategyId } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -54,7 +54,9 @@ export async function POST(req: Request) {
 
     // Strip the heavy bars and signals arrays from the public payload to keep
     // the response light. Charts only need the equity curve and trade log.
-    const { bars: _bars, signals: _signals, ...lite } = result;
+    const lite = { ...result } as Partial<BacktestResult>;
+    delete lite.bars;
+    delete lite.signals;
 
     return NextResponse.json({ result: lite, commentary });
   } catch (err) {

@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState, useCallback } from "react";
 import type { BacktestResult, EquityPoint, StrategyId } from "@/lib/types";
-import { STRATEGY_META } from "@/lib/strategies";
 import { Disclaimer } from "@/components/Disclaimer";
 import { EquityChart } from "@/components/EquityChart";
 import { fmtPct, fmtUsd, statColor } from "@/lib/format";
@@ -40,21 +39,18 @@ function todayIso(): string {
 }
 
 export default function PortfolioClient() {
-  const [portfolio, setPortfolio] = useState<Portfolio>(DEFAULT_PORTFOLIO);
+  const [portfolio, setPortfolio] = useState<Portfolio>(() => {
+    if (typeof window === "undefined") return DEFAULT_PORTFOLIO;
+    try {
+      const raw = window.localStorage.getItem(STORAGE_KEY);
+      return raw ? (JSON.parse(raw) as Portfolio) : DEFAULT_PORTFOLIO;
+    } catch {
+      return DEFAULT_PORTFOLIO;
+    }
+  });
   const [results, setResults] = useState<LiteResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Load from localStorage on mount.
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) setPortfolio(JSON.parse(raw) as Portfolio);
-    } catch {
-      // ignore
-    }
-  }, []);
 
   // Persist on change.
   useEffect(() => {

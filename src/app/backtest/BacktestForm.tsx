@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { AICommentary, BacktestResult, StrategyId } from "@/lib/types";
 import { STRATEGY_META } from "@/lib/strategies";
@@ -49,14 +49,12 @@ export default function BacktestForm() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<LiteResult | null>(null);
   const [commentary, setCommentary] = useState<AICommentary | null>(null);
+  const autoRunRef = useRef(Boolean(search.get("symbol")));
 
   // Symbol autocomplete
   useEffect(() => {
     const q = symbol.trim();
-    if (!q || q.length < 1) {
-      setSuggestions([]);
-      return;
-    }
+    if (!q || q.length < 1) return;
     const handle = setTimeout(async () => {
       try {
         const res = await fetch(`/api/symbols?q=${encodeURIComponent(q)}`);
@@ -105,11 +103,11 @@ export default function BacktestForm() {
 
   // Auto run if URL contains a symbol param.
   useEffect(() => {
-    if (search.get("symbol")) {
-      void onSubmit();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (!autoRunRef.current) return;
+    autoRunRef.current = false;
+    const handle = window.setTimeout(() => void onSubmit(), 0);
+    return () => window.clearTimeout(handle);
+  }, [onSubmit]);
 
   return (
     <div className="space-y-6">
@@ -120,7 +118,9 @@ export default function BacktestForm() {
             className="input"
             value={symbol}
             onChange={(e) => {
-              setSymbol(e.target.value.toUpperCase());
+              const nextSymbol = e.target.value.toUpperCase();
+              setSymbol(nextSymbol);
+              if (!nextSymbol.trim()) setSuggestions([]);
               setShowSuggestions(true);
             }}
             onFocus={() => setShowSuggestions(true)}

@@ -68,6 +68,7 @@ export function runBacktest(
   config: BacktestConfig,
   params?: Partial<StrategyParams[StrategyId]>
 ): BacktestResult {
+  validateBacktestInputs(bars, config);
   if (bars.length < 30) throw new Error("Need at least 30 bars to run a backtest");
 
   const signals = runStrategy(strategy, bars, params);
@@ -88,8 +89,6 @@ export function runBacktest(
   for (let i = 0; i < bars.length; i++) {
     const bar = bars[i];
     if (!bar) continue;
-
-    const desired = signals[i] ?? "flat";
 
     // Apply transitions at the OPEN of the NEXT bar.
     if (i > 0) {
@@ -170,7 +169,11 @@ export function runBacktest(
     shares = 0;
     position = "flat";
     const final = equity[equity.length - 1];
-    if (final) final.equity = cash;
+    if (final) {
+      if (cash > peakEquity) peakEquity = cash;
+      final.equity = cash;
+      final.drawdown = peakEquity > 0 ? cash / peakEquity - 1 : 0;
+    }
   }
 
   const stats = computeStats(equity, trades, bars, config.startingCapital);
@@ -185,6 +188,47 @@ export function runBacktest(
     signals,
     bars
   };
+}
+
+function validateBacktestInputs(bars: Bar[], config: BacktestConfig): void {
+  if (!Number.isFinite(config.startingCapital) || config.startingCapital <= 0) {
+    throw new Error("startingCapital must be a positive number");
+  }
+  if (
+    !Number.isFinite(config.maxPositionFraction)
+    || config.maxPositionFraction < 0
+    || config.maxPositionFraction > 1
+  ) {
+    throw new Error("maxPositionFraction must be between 0 and 1");
+  }
+  if ((config.commissionPerShare ?? 0) < 0) {
+    throw new Error("commissionPerShare cannot be negative");
+  }
+  if ((config.slippageBps ?? 0) < 0) {
+    throw new Error("slippageBps cannot be negative");
+  }
+
+  let previousDate = "";
+  for (const [index, bar] of bars.entries()) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(bar.date)) {
+      throw new Error(`bar ${index} has an invalid ISO date`);
+    }
+    if (previousDate && bar.date <= previousDate) {
+      throw new Error("bars must be sorted by ascending date with no duplicate dates");
+    }
+    previousDate = bar.date;
+
+    const values = [bar.open, bar.high, bar.low, bar.close, bar.adjClose];
+    if (values.some((value) => !Number.isFinite(value) || value <= 0)) {
+      throw new Error(`bar ${bar.date} contains non-positive OHLC values`);
+    }
+    if (bar.volume < 0 || !Number.isFinite(bar.volume)) {
+      throw new Error(`bar ${bar.date} contains invalid volume`);
+    }
+    if (bar.high < Math.max(bar.open, bar.close) || bar.low > Math.min(bar.open, bar.close)) {
+      throw new Error(`bar ${bar.date} has inconsistent high/low values`);
+    }
+  }
 }
 
 function computeStats(
